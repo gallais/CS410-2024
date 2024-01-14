@@ -29,7 +29,7 @@
 
 -- * The Asynchronous Methods
 -- emails
--- mattermost
+-- mattermost (https://mattermost.cis.strath.ac.uk/learning/channels/cs410-23-24)
 
 -- | Flu, COVID, etc.
 
@@ -37,6 +37,9 @@
 -- Please stay home and take care of yourself if you are feeling sick
 
 -- | The Coursework
+
+-- * Available from the repo (https://github.com/gallais/CS410-2024)
+-- * Submission by creating a private repo (on github or gitlab) and inviting me
 
 -- * Two projects
 -- Deadlines on Thursday 5pm
@@ -69,6 +72,9 @@
 ------------------------------------------------------------------------
 
 -- Speed running an intro to Agda
+-- * Syntax
+-- * Some fundamental concepts
+-- * Our first proof of correctness!
 
 ------------------------------------------------------------------------
 -- Types and functions
@@ -83,15 +89,16 @@
 -- * Dependently-Typed
 --   --> statically typed: you will never get a runtime error because
 --   you are trying to add an integer to a string
---   --> dependently typed i.e. types are written in the same language as terms,
+--   --> dependently typed: types are written in the same language as terms,
 --   can be computed, passed around, stored in data structures, etc.
+--   Information may flow from runtime values into compile time types
 
 -- | Variable Blocks
 
 variable A B C D : Set
 
 -- * Set is the name of all types
--- * Constant *declaration*
+-- * Constant declaration
 --   `identifier1 identifier2 : typesignature` declares two new top-level
 --   constants `identifier1` and `identifier2` whose type is `typesignature`
 -- * Implicit generalisation
@@ -104,10 +111,11 @@ variable A B C D : Set
 id : A → A
 id = λ a → a
 
+-- * `A` in the type is our first generalised variable
 -- * Unicode support
 --   Use `C-u C-x = RET` to see a description of the character under the cursor,
 --   including the keystrokes to use to type it.
--- * Constant *definition*
+-- * Constant definition
 --   `identifier = expression` defines `identifier` as an alias for `expression`
 -- * Anonymous lambda function
 
@@ -128,6 +136,8 @@ _ = id
 -- * `_` can be used in different contexts to say "I don't care"
 --   Here it's "I don't care about this definition"
 --   We will see other "I don't care"s later.
+-- * Polymorphism: `id` is polymorphic in `A` and so can be used
+--   in particular for `A = (B → C)`.
 
 -- | Composition
 infixr 9 _∘_
@@ -140,14 +150,13 @@ _∘_ : (B → C) → (A → B) → (A → C)
 --   as you want but you need non-empty identifier parts in between them
 --   e.g. `if_then_else_` is a user-defined top-level definition.
 
--- * Fixity declaration
+-- * Fixity declaration: disambiguating an expression with multiple infix operators
 --   Infixl associates to the left
 --   Infixr associates to the right
 --   Levels give a priority order
 
 _ : A → A
 _ = id ∘ id ∘ id
-
 
 -- | Type Annotations
 infixl 0 _∋_
@@ -186,6 +195,12 @@ record _×_ (A B : Set) : Set where
 swap : A × B → B × A
 swap (a , b) = b , a
 
+-- * Definitions given by a list of directed equations (here a single one)
+-- * Patterns on the left of the equation match on constructors,
+--   and bind or discard sub-expressions using variable names or `_`.
+-- * Expressions on the right can mention the sub-expressions bound on the
+--   left-hand side.
+
 -- | Sum Type
 
 data _⊎_ (A B : Set) : Set where
@@ -196,6 +211,8 @@ data _⊎_ (A B : Set) : Set where
 --   In Haskell this would be written `data Sum a b = Inj1 a | Inj2 b`
 --   but here we use the type declaration syntax to explicitly spell
 --   out the full type of each type constructor.
+--   The type declaration of a constructor for a type family `T` will
+--   always have the shape `c : (x₁ : A₁) → ⋯ → (xₙ : Aₙ) -> T e₁ ⋯ eₖ`
 
 -- | Coverage Checking
 
@@ -203,11 +220,20 @@ reduce : A ⊎ A → A
 reduce (inj₁ a) = a
 reduce (inj₂ a) = a
 
--- | Recursive Type
+-- * A definition needs to cover all possible inputs. Agda has an
+--   automated check to enforce that it is the case.
+--   Here we consider one case per constructor: `inj₁` and `inj₂`.
+
+-- | Inductive Type
 
 data ℕ : Set where
-  zero  : ℕ
-  suc   : ℕ → ℕ
+  zero : ℕ
+  suc  : ℕ → ℕ
+
+-- * Modelling the natural numbers as either `zero` (0) or the
+--   `suc`cessor of another natural number (1 + n).
+--   Not all recursive types are valid; no need to worry as long
+--   as Agda does not complain about the one you're defining!
 
 variable m n : ℕ
 
@@ -216,6 +242,15 @@ variable m n : ℕ
 pred : ℕ → ℕ
 pred (suc n) = n
 pred n = n
+
+-- * Catch-all case: an equation that does not impose any restriction on
+--   on the shape of its argument (such as `pred n = n`) is called a catch-all.
+--   You cannot have any more equations after it as they would be unreachable.
+
+-- * First match: when attempting to reduce a function call, Agda considers
+--   every equation in turn and reduces the first one that is valid.
+--   In the definition of `pred` we could replace the last equation with
+--   `pred zero = zero` and obtain the same behaviour.
 
 zero′ : ℕ
 zero′ = pred zero
@@ -228,9 +263,19 @@ iterate : ℕ → (A → A) → A → A
 iterate zero    s z = z
 iterate (suc n) s z = s (iterate n s z)
 
+-- * Recursive calls: functions operating on inductive data can perform
+--   recursive calls as long as they are on *smaller* data. The notion of
+--   "smaller" built into the compiler is "strict subterm" i.e.
+--   `n` is seen as smaller than `suc n` but `zero` is not considered to
+--   be smaller than `suc n` for termination purposes.
+--   Users can introduce their own orders if necessary.
+
 _+_ : ℕ → ℕ → ℕ
 zero   + n = n
 suc m  + n = suc (m + n)
+
+-- * Challenge: rewrite `_+_` in terms of `iterate` (hint: can you remember
+--   Church numerals?). Can you do the same for `_*_`?
 
 -- | Dependent Record
 
@@ -240,42 +285,57 @@ record Σ (A : Set) (B : A → Set) : Set where
     proj₁ : A
     proj₂ : B proj₁
 
--- * Dependent fields
+-- * Dependent fields: the record type is parametrised by a type `A`
+--   and a family of types `B x` for every `x : A`.
+--   The record has two fields: `proj₁` of type `A` and `proj₂` whose
+--   type `B proj₁` _depends_ on the value of `proj₁`.
 
 
 ------------------------------------------------------------------------
 -- Equality
 ------------------------------------------------------------------------
 
--- | Inductive Definition of *Propositional* Equality
+-- | Inductive Definition of _Propositional_ Equality
 
 infixr 4 _≡_
 data _≡_ (a : A) : A → Set where
   refl : a ≡ a
 
 -- * The essence of inductive families
-
+--   The `refl` constructor has type `{A : Set} {a : A} → a ≡ a` which
+--   means it can only be used when both sides of the equality are obviously
+--   equal. What "obvious" means is naturally quite subtle.
 
 _ : ∀ {h : C → D} {g} {f : A → B} → h ∘ (g ∘ f) ≡ (h ∘ g) ∘ f
 _ = refl
 
 -- * Implicit quantification
 -- * Conversion checking
---   The `refl` constructor has type `{A : Set} {a : A} → a ≡ a` which
---   means it can only be used when both sides of the equality are obviously
---   equal. When we use it here for the proof that `pred (suc n) ≡ n`,
---   Agda checks that the two expressions are the same. It does so modulo
---   computations.
 
 -- | Dependent Pattern Matching
 
 subst : (P : A → Set) → ∀ {x y} → x ≡ y → P x → P y
-subst P refl px = px
+subst P refl = id
+
+-- * Dependent Matching
+--   When we match on the proof that `x ≡ y`, we uncover the
+--   constructor `refl`. But `refl` has type `{A : Set} {a : A} → a ≡ a`.
+--   And so for this pattern to make sense, Agda needs to find a way for
+--   `x` and `y` to be the same. It does so by picking one and replacing
+--   the other with it. The goal is now `P x → P x` hence the fact `id`
+--   is accepted!
 
 cong : (f : A → B) → {x y : A} → x ≡ y → f x ≡ f y
 cong f refl = refl
 
--- * Challenge: implement `cong` in terms of `subst`.
+-- * Dependent Matching in proofs
+--   Proofs are programs like any other: if we know that `x ≡ y` we
+--   can prove that `f x ≡ f y` by matching on the first proof, getting
+--   `refl` and observing that the new goal `f x ≡ f x` which can be
+--   discharged with `refl`.
+
+-- * Challenge: implement `cong` in terms of `subst`. Can you prove that
+--   equality is reflexive, symmetric, and transitive?
 
 -- | Type Level Computation
 
@@ -303,3 +363,5 @@ _ = refl
 iterate-+ : ∀ m n s (z : A) → iterate (m + n) s z ≡ iterate m s (iterate n s z)
 iterate-+ zero    n s z = refl
 iterate-+ (suc m) n s z = cong s (iterate-+ m n s z)
+
+-- * Proof by induction: amounts to writing a recursive program
