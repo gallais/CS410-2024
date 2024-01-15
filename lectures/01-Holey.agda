@@ -19,6 +19,7 @@
 -- Thursdays | 12noon to 1pm    | Lab     | LT1301
 
 -- * The Lectures
+-- One minute papers
 -- Double act
 -- Recorded
 -- Files on the github (https://github.com/gallais/CS410-2024)
@@ -60,6 +61,7 @@
 ------------------------------------------------------------------------
 
 -- * [ ] Installation (ghc, Agda, standard library, emacs)
+-- * [ ] Compile coursework 00-Hello (https://github.com/gallais/CS410-2024)
 -- * [ ] Connect to Mattermost
 -- * [ ] Create a *private* git repository (github or departmental gitlab),
 --       add the coursework 1 skeleton and invite me to it
