@@ -237,6 +237,8 @@ data ℕ : Set where
 --   Not all recursive types are valid; no need to worry as long
 --   as Agda does not complain about the one you're defining!
 
+{-# BUILTIN NATURAL ℕ #-} -- gives access to decimal notation for ℕ
+
 variable m n : ℕ
 
 -- | First Match Semantics
@@ -311,6 +313,12 @@ data _≡_ (a : A) : A → Set where
 _ : ∀ {h : C → D} {g} {f : A → B} → h ∘ (g ∘ f) ≡ (h ∘ g) ∘ f
 _ = refl
 
+-- * Now that we have defined equality, we can also give an example of
+--   an instance of a dependent pair:
+
+_ : Σ ℕ (λ n → n ≡ 17)
+_ = (15 + 2) , refl
+
 -- * Implicit quantification
 -- * Conversion checking
 
@@ -318,6 +326,9 @@ _ = refl
 
 subst : (P : A → Set) → ∀ {x y} → x ≡ y → P x → P y
 subst P refl = id
+
+-- with implicit arguments made explicit, and "dot patterns" retained:
+--   subst P x .x refl = id
 
 -- * Dependent Matching
 --   When we match on the proof that `x ≡ y`, we uncover the
