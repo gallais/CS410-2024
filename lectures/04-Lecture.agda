@@ -1,8 +1,34 @@
+variable A B C : Set
+
 ------------------------------------------------------------------------
 -- One minute papers
 ------------------------------------------------------------------------
 
 -- Re-explain Fin
+
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Vec.Base using (Vec; []; _∷_; map)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+
+variable m n : ℕ
+
+data Fin : ℕ → Set where
+  zero : Fin (suc n)
+  suc  : Fin n → Fin (suc n)
+
+fin0-elim : Fin 0 → A
+fin0-elim ()
+
+allFins : (n : ℕ) → Vec (Fin n) n
+allFins zero = []
+allFins (suc n) = zero ∷ map suc (allFins n)
+
+-- allFins 4
+-- 0 ∷          1 ∷ 2 ∷ 3 ∷ []
+-- 0 ∷ map suc (0 ∷ 1 ∷ 2 ∷ [])
+
+_ : allFins 4 ≡ zero ∷ map suc (allFins 3)
+_ = refl
 
 -- Formal definition of the lookup as a "decision procedure"
 
@@ -19,6 +45,9 @@
 
 open import Data.Bool.Base using (Bool)
 
+
+-- Dig up your old CS106 notes and you'll find
+-- how to implement `_&&_` for booleans
 _&&_ : Bool → Bool → Bool
 a && b = {!!}
 
@@ -38,8 +67,6 @@ a && b = {!!}
 -- means that from the assumptions H₁, H₂, etc. to Hₙ we can conclude
 -- that C holds.
 
-
-variable A B C D : Set
 
 -- | The True statement
 --
@@ -160,9 +187,7 @@ Dec A = A ∨ ¬ A
       (λ a → inj₂ (doubleNegation a))
       (λ ¬a → inj₁ ¬a)
 
-open import Data.Nat.Base using (ℕ)
 variable
-  m n : ℕ
   P Q : ℕ → Set
 
 -- | Universal quantifier

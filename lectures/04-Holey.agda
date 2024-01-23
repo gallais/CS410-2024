@@ -4,6 +4,25 @@
 
 -- Re-explain Fin
 
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Vec.Base using (Vec; []; _∷_; map)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+
+variable m n : ℕ
+
+-- data Fin : ℕ → Set where
+
+-- fin0-elim : Fin 0 → A
+
+-- allFins : (n : ℕ) → Vec (Fin n) n
+
+-- allFins 4
+-- 0 ∷          1 ∷ 2 ∷ 3 ∷ []
+-- 0 ∷ map suc (0 ∷ 1 ∷ 2 ∷ [])
+
+-- _ : allFins 4 ≡ zero ∷ map suc (allFins 3)
+-- _ = refl
+
 -- Formal definition of the lookup as a "decision procedure"
 
 
@@ -257,9 +276,7 @@ const = λ a b → a
 
 
 
-open import Data.Nat.Base using (ℕ)
 variable
-  m n : ℕ
   P Q : ℕ → Set
 
 -- | Universal quantifier
