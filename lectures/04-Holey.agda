@@ -7,11 +7,24 @@
 -- Formal definition of the lookup as a "decision procedure"
 
 
+
+
+
+
+
+
+
+
+
+
 ------------------------------------------------------------------------
 -- Today's content: the Curry-Howard correspondence
 -- aka Statements as Types
 -- and Proofs as Programs
 ------------------------------------------------------------------------
+
+
+
 
 ------------------------------------------------------------------------
 -- Statements as booleans
@@ -24,6 +37,11 @@ a && b = {!!}
 
 -- But how do we encode `∀n.P(n)` for `P` of type `ℕ → Bool`?
 -- We can't possibly test the predicate for all natural numbers!
+
+
+
+
+
 
 
 ------------------------------------------------------------------------
@@ -41,13 +59,35 @@ a && b = {!!}
 
 variable A B C D : Set
 
+
+
+
+
+
+
+
+
+
+
 -- | The True statement
 --
 --  -------------
 --        ⊤
 
-record ⊤ : Set where
-  constructor tt
+-- record ⊤ : Set where
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- | The False statement and 'ex falso quod libet'
 --
@@ -59,8 +99,21 @@ record ⊤ : Set where
 data ⊥ : Set where
 
 -- The absurd pattern dismissing an argument that cannot possibly be inhabited
-exfalso : ⊥ → A
-exfalso ()
+-- exfalso : ⊥ → A
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- | Implication
@@ -84,6 +137,24 @@ const : A ⇒ B ⇒ A
 const = λ a b → a
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 -- | Negation
 -- If assuming A allows you to prove ⊥ then you have a proof of ¬ A
 --
@@ -91,15 +162,28 @@ const = λ a b → a
 --  ------------    ----------------
 --      ¬ A                 B
 
-¬ : Set → Set
-¬ A = A ⇒ ⊥
+-- ¬ : Set → Set
 
-absurd : ¬ A → A → B
-absurd = λ ¬a a → exfalso (¬a $ a)
+-- absurd : ¬ A → A → B
 
 -- Example: A implies ¬ ¬ A
-doubleNegation : A ⇒ ¬ (¬ A)
-doubleNegation = λ a ¬a → absurd ¬a a
+-- doubleNegation : A ⇒ ¬ (¬ A)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- | Conjunction
@@ -110,20 +194,31 @@ doubleNegation = λ a ¬a → absurd ¬a a
 --         A ∧ B            A              B
 --
 
-data _∧_ (A B : Set) : Set where
-  _,_ : A → B →
-       ---------
-        A ∧ B
+-- data _∧_ (A B : Set) : Set where
 
-fst : A ∧ B → A
-fst (a , b) = a
 
-snd : A ∧ B → B
-snd (a , b) = b
+-- fst : A ∧ B → A
+
+-- snd : A ∧ B → B
 
 -- Example: A and B implies B and A
-swap : A ∧ B ⇒ B ∧ A
-swap = λ p → (snd p , fst p)
+-- swap : A ∧ B ⇒ B ∧ A
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- | Disjunction
@@ -133,32 +228,34 @@ swap = λ p → (snd p , fst p)
 --    ------------    -------------     -------------------------------
 --       A ∨ B           A ∨ B                         C
 
-data _∨_ (A B : Set) : Set where
-  inj₁ : A → A ∨ B
-  inj₂ : B → A ∨ B
+-- data _∨_ (A B : Set) : Set where
 
-case : A ∨ B → (A ⇒ C) → (B ⇒ C) → C
-case (inj₁ a) l r = l a
-case (inj₂ b) l r = r b
+-- case : A ∨ B → (A ⇒ C) → (B ⇒ C) → C
+
 
 -- Example: A and (B or C) implies (A and B) or (A and C)
-∧-distribˡ-∨ : A ∧ (B ∨ C) ⇒ (A ∧ B) ∨ (A ∧ C)
-∧-distribˡ-∨
-  = λ p →
-    case (snd p)
-      (λ b → inj₁ (fst p , b))
-      (λ c → inj₂ (fst p , c))
+-- ∧-distribˡ-∨ : A ∧ (B ∨ C) ⇒ (A ∧ B) ∨ (A ∧ C)
 
 -- Example: A is decidable implies that ¬ A also is
-Dec : Set → Set
-Dec A = A ∨ ¬ A
+-- Dec : Set → Set
 
-¬-dec : Dec A ⇒ Dec (¬ A)
-¬-dec
-  = λ dec →
-    case dec
-      (λ a → inj₂ (doubleNegation a))
-      (λ ¬a → inj₁ ¬a)
+-- ¬-dec : Dec A ⇒ Dec (¬ A)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 open import Data.Nat.Base using (ℕ)
 variable
@@ -173,15 +270,35 @@ variable
 --      ∀n. P(n)                P(m)
 
 
-Forall : (ℕ → Set) → Set
-Forall P = ∀ n → P n
+-- Forall : (ℕ → Set) → Set
 
-instantiate : (Forall P) → P m
-instantiate = λ pf → pf _
+
+-- instantiate : (Forall P) → P m
 
 -- Example : Forall distributes over conjunction
-Forall-distribˡ-∧ : Forall (λ m → P m ∧ Q m) ⇒ Forall P ∧ Forall Q
-Forall-distribˡ-∧ = λ pf → ((λ n → fst (instantiate pf)) , (λ n → snd (instantiate pf)))
+-- Forall-distribˡ-∧ : Forall (λ m → P m ∧ Q m) ⇒ Forall P ∧ Forall Q
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- | Existential quantifier
 -- From a proof of P(m), we can construct a proof of ∃n. P(n)
@@ -192,8 +309,6 @@ Forall-distribˡ-∧ = λ pf → ((λ n → fst (instantiate pf)) , (λ n → sn
 
 open import Data.Product.Base using (Σ; proj₁; proj₂; _,_)
 
-Exists : (ℕ → Set) → Set
-Exists P = Σ ℕ P
+-- Exists : (ℕ → Set) → Set
 
-elim : Exists P → Forall (λ n → P n ⇒ C) → C
-elim (m , pm) k = k m pm
+-- elim : Exists P → Forall (λ n → P n ⇒ C) → C
