@@ -280,7 +280,7 @@ vhead (x ,- _) _ = x
 -- stating what it means for a value to be at a given position in a vector.
 
 infix 0 _[_]≈_
-data _[_]≈_ : Vect A n → Fin n → A → Set where
+data _[_]≈_ {A : Set} : Vect A n → Fin n → A → Set where
   zero : x ,- vs [ zero ]≈ x
   suc : vs [ k ]≈ y → x ,- vs [ suc k ]≈ y
 
