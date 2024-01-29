@@ -8,7 +8,7 @@ variable A B C : Set
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Vec.Base using (Vec; []; _∷_; map)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
 variable m n : ℕ
 
@@ -176,9 +176,45 @@ case (inj₂ b) l r = r b
       (λ b → inj₁ (fst p , b))
       (λ c → inj₂ (fst p , c))
 
+------------------------------------------------------------------------
+-- One minute papers interlude: Fin again
+------------------------------------------------------------------------
+
+open import Data.Product using (Σ; proj₁; proj₂; _,_)
+
+_<_ : ℕ → ℕ → Set
+zero < zero = ⊥
+zero < suc m = ⊤
+suc n < zero = ⊥
+suc n < suc m = n < m
+
+to : (n : ℕ) → Fin n → Σ ℕ (λ m → m < n)
+to (suc n) zero = zero , tt
+to (suc n) (suc k) = let (k' , p) = to n k in suc k' , p
+
+from : (n : ℕ) → Σ ℕ (λ m → m < n) → Fin n
+from (suc n) (zero , p) = zero
+from (suc n) (suc k , p) = suc (from n (k , p))
+
+to-from : (n : ℕ) → (x : Σ ℕ (λ m → m < n)) → to n (from n x) ≡ x
+to-from (suc n) (zero , p) = refl
+to-from (suc n) (suc k , p) rewrite to-from n (k , p) = refl
+
+from-to : (n : ℕ) → (m : Fin n) → from n (to n m) ≡ m
+from-to (suc n) zero = refl
+from-to (suc n) (suc m) = cong suc (from-to n m)
+
+------------------------------------------------------------------------
+
 -- Example: A is decidable implies that ¬ A also is
 Dec : Set → Set
 Dec A = A ∨ ¬ A
+
+less-decidable : (n m : ℕ) → Dec (n < m)
+less-decidable zero zero = inj₂ (λ p → p)
+less-decidable zero (suc m) = inj₁ tt
+less-decidable (suc n) zero = inj₂ (λ p → p)
+less-decidable (suc n) (suc m) = less-decidable n m
 
 ¬-dec : Dec A ⇒ Dec (¬ A)
 ¬-dec
@@ -214,8 +250,6 @@ Forall-distribˡ-∧ = λ pf → ((λ n → fst (instantiate pf)) , (λ n → sn
 --        P(m)            ∃n. P(n)    ∀n. P(n) → C
 --    ------------    ------------------------------
 --      ∃n. P(n)                   C
-
-open import Data.Product.Base using (Σ; proj₁; proj₂; _,_)
 
 Exists : (ℕ → Set) → Set
 Exists P = Σ ℕ P
