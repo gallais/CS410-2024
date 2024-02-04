@@ -48,8 +48,8 @@ open import Data.Bool.Base using (Bool)
 
 -- Dig up your old CS106 notes and you'll find
 -- how to implement `_&&_` for booleans
-_&&_ : Bool → Bool → Bool
-a && b = {!!}
+-- _&&_ : Bool → Bool → Bool
+-- a && b = {!!}
 
 -- But how do we encode `∀n.P(n)` for `P` of type `ℕ → Bool`?
 -- We can't possibly test the predicate for all natural numbers!
@@ -188,15 +188,18 @@ zero < suc m = ⊤
 suc n < zero = ⊥
 suc n < suc m = n < m
 
-to : (n : ℕ) → Fin n → Σ ℕ (λ m → m < n)
+Fin' : ℕ → Set
+Fin' n = Σ ℕ (λ m → m < n)
+
+to : (n : ℕ) → Fin n → Fin' n
 to (suc n) zero = zero , tt
 to (suc n) (suc k) = let (k' , p) = to n k in suc k' , p
 
-from : (n : ℕ) → Σ ℕ (λ m → m < n) → Fin n
+from : (n : ℕ) → Fin' n → Fin n
 from (suc n) (zero , p) = zero
 from (suc n) (suc k , p) = suc (from n (k , p))
 
-to-from : (n : ℕ) → (x : Σ ℕ (λ m → m < n)) → to n (from n x) ≡ x
+to-from : (n : ℕ) → (x : Fin' n) → to n (from n x) ≡ x
 to-from (suc n) (zero , p) = refl
 to-from (suc n) (suc k , p) rewrite to-from n (k , p) = refl
 
