@@ -1,8 +1,28 @@
 ------------------------------------------------------------------------
--- Today: Equality
+-- Last Week's OMPs
 ------------------------------------------------------------------------
 
 variable A B C : Set
+variable P Q : A → Set
+
+open import 04-Lecture using (_∨_; inj₁; inj₂; Dec)
+open import Data.Product.Base using (_×_; _,_)
+
+-- Another example of using `with`
+
+dec-× : ((n : A) → Dec (P n))
+      → ((n : A) → Dec (Q n))
+      →  (n : A) → Dec (P n × Q n)
+dec-× decP decQ n with decP n
+dec-× decP decQ n | inj₁ p with decQ n
+dec-× decP decQ n | inj₁ p | inj₁ q = inj₁ (p , q)
+dec-× decP decQ n | inj₁ p | inj₂ nq = inj₂ (λ (p , q) → nq q)
+dec-× decP decQ n | inj₂ np = inj₂ (λ (p , q) → np p)
+
+------------------------------------------------------------------------
+-- Today: Equality
+------------------------------------------------------------------------
+
 variable x y z : A
 
 -- | Propositional equality
