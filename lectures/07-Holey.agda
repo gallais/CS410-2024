@@ -122,7 +122,7 @@ toListAcc-optimisation = {!!}
 -- * `left`  states that a subtree of a left branch is a subtree of the overall node
 -- * `right` is similar but for the right branch
 
-data Subtree : Tree A → Set where
+data Subtree {A : Set} : Tree A → Set where
   self  : Subtree t
   left  : Subtree l → Subtree (node l r)
   right : Subtree r → Subtree (node l r)
