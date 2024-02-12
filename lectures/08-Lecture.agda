@@ -17,7 +17,7 @@ open import 04-Lecture using (Dec) renaming (inj₁ to yes; inj₂ to no)
 module ByRecursion where
 ---------------------------------------------------------------------
 
-  -- We previosuly defined the strict order < on ℕ by recursion. Here is
+  -- We previously defined the strict order < on ℕ by recursion. Here is
   -- a similar-looking non-strict order:
 
   _≤_ : ℕ -> ℕ -> Set
