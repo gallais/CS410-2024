@@ -281,7 +281,7 @@ infer (ifE e then et else ef) = do
 -- false`. Using typed expressions, we can already record in the type
 -- of this function that this optimisation is type-preserving.
 
-reduce-if : ∀ {t} → TExpr t -> TExpr t
+reduce-if : ∀ {T} → TExpr T -> TExpr T
 reduce-if (num n) = num n
 reduce-if (bit b) = bit b
 reduce-if (e +E e') = reduce-if e +E reduce-if e'
@@ -292,7 +292,7 @@ reduce-if (ifE e then et else ef) with reduce-if e
 
 -- Now let's prove that our optimisation did not change the meaning of expressions.
 
-reduce-if-correct : ∀ {t} → (e : TExpr t) → teval (reduce-if e) ≡ teval e
+reduce-if-correct : ∀ {T} → (e : TExpr T) → teval (reduce-if e) ≡ teval e
 reduce-if-correct (num n) = refl
 reduce-if-correct (bit b) = refl
 reduce-if-correct (e +E e')
@@ -303,3 +303,91 @@ reduce-if-correct (ifE e then et else ef)
 ... | bit true | qqq rewrite sym qqq = reduce-if-correct et
 ... | ifE qq then qq₁ else qq₂ | qqq
   rewrite qqq | reduce-if-correct et | reduce-if-correct ef = refl
+
+-- We can also run our optimiser, of course
+_ : reduce-if tex3 ≡ num 7
+_ = refl
+
+-- For our next optimisation, we are interested in if a number is a
+-- constant or not. We can expose this using a *View*. First we define
+-- a datatype which singles out the property we are interested in:
+
+data NumView : TExpr Num → Set where
+  num : ∀ n → NumView (num n)
+  other : (x : TExpr Num) → NumView x
+
+-- Next we show that every TExpr Num can be seen this way:
+
+numview : (e : TExpr Num) → NumView e
+numview (num n) = num n
+numview x = other x
+
+-- And now we can do `with (numview e)` whenever we want to only
+-- consider the two cases `num n` and everything else.
+
+-- Constant folding: replace num n + num k with num (n + k)
+cfold : ∀ {T} → TExpr T → TExpr T
+cfold (num n) = num n
+cfold (bit b) = bit b
+cfold (e +E e') with cfold e | numview (cfold e) | cfold e' | numview (cfold e')
+cfold (e +E e') | .(num n) | num n | .(num n') | num n' = num (n + n')
+cfold (e +E e') | .(num n) | num n | ce' | other .ce' = num n +E ce'
+cfold (e +E e') | ce | other .ce | .(num n') | num n' = ce +E num n'
+cfold (e +E e') | ce | other .ce | ce' | other .ce' = ce +E ce'
+cfold (ifE eb then et else ef) = ifE (cfold eb) then cfold et else cfold ef
+
+tex4 : TExpr Num
+tex4 = ifE bit false then (ifE bit true then (num 1 +E num 2) else num 6) else (num 4 +E (num 12 +E num 9))
+
+_ : cfold tex4 ≡ (ifE bit false then ifE bit true then num 3 else num 6 else num 25)
+_ = refl
+
+_ = reduce-if tex4 ≡ TExpr.num 25
+_ = refl {x = TExpr.num 25}
+
+cfold-correct : ∀ {T} → (e : TExpr T) → teval (cfold e) ≡ teval e
+cfold-correct (num n) = refl
+cfold-correct (bit b) = refl
+cfold-correct (e +E e') with cfold e in eq | numview (cfold e) | cfold e' in eq' | numview (cfold e')
+cfold-correct (e +E e') | .(num n) | num n | .(num n') | num n' = begin
+  n + n'
+    ≡⟨⟩
+  teval (num n) + teval (num n')
+    ≡⟨ cong₂ _+_ (cong teval (sym eq)) (cong teval (sym eq')) ⟩
+  teval (cfold e) + teval (cfold e')
+    ≡⟨ cong₂ _+_ (cfold-correct e) (cfold-correct e') ⟩
+  teval e + teval e'
+    ∎
+  where open ≡-Reasoning
+cfold-correct (e +E e') | .(num n) | num n | ce' | other .ce' = begin
+  n + teval ce'
+    ≡⟨⟩
+  teval (num n) + teval ce'
+    ≡⟨ cong₂ _+_ (cong teval (sym eq)) (cong teval (sym eq')) ⟩
+  teval (cfold e) + teval (cfold e')
+    ≡⟨ cong₂ _+_ (cfold-correct e) (cfold-correct e') ⟩
+  teval e + teval e'
+    ∎
+  where open ≡-Reasoning
+cfold-correct (e +E e') | ce | other .ce | .(num n') | num n' = begin
+  teval ce + n'
+    ≡⟨⟩
+  teval ce + teval (num n')
+    ≡⟨ cong₂ _+_ (cong teval (sym eq)) (cong teval (sym eq')) ⟩
+  teval (cfold e) + teval (cfold e')
+    ≡⟨ cong₂ _+_ (cfold-correct e) (cfold-correct e') ⟩
+  teval e + teval e'
+    ∎
+  where open ≡-Reasoning
+cfold-correct (e +E e') | ce | other .ce | ce' | other .ce' = begin
+  teval ce + teval ce'
+    ≡⟨ cong₂ _+_ (cong teval eq) (cong teval eq') ⟨
+  teval (cfold e) + teval (cfold e')
+    ≡⟨ cong₂ _+_ (cfold-correct e) (cfold-correct e') ⟩
+  teval e + teval e'
+    ∎
+  where open ≡-Reasoning
+cfold-correct (ifE eb then et else ef)
+  rewrite cfold-correct eb
+  rewrite cfold-correct et
+  rewrite cfold-correct ef = refl

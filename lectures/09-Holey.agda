@@ -170,3 +170,46 @@ reduce-if : ∀ {t} → TExpr t -> TExpr t
 reduce-if e = ?
 
 -- Now let's prove that our optimisation did not change the meaning of expressions.
+
+
+
+
+
+
+
+
+-- We can also run our optimiser, of course
+-- _ : reduce-if tex3 ≡ num 7
+-- _ = refl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Constant folding: replace num n + num k with num (n + k)
+cfold : ∀ {T} → TExpr T → TExpr T
+cfold = ?
+
+{-
+tex4 : TExpr Num
+tex4 = ifE bit false then (ifE bit true then (num 1 +E num 2) else num 6) else (num 4 +E (num 12 +E num 9))
+
+_ : cfold tex4 ≡ (ifE bit false then ifE bit true then num 3 else num 6 else num 25)
+_ = refl
+
+_ = reduce-if tex4 ≡ TExpr.num 25
+_ = refl {x = TExpr.num 25}
+-}
+
+
+cfold-correct : ∀ {T} → (e : TExpr T) → teval (cfold e) ≡ teval e
+cfold-correct = ?
