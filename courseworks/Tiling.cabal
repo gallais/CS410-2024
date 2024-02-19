@@ -1,0 +1,114 @@
+cabal-version:      2.4
+name:               Tiling
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             Guillaume Allais
+maintainer:         guillaume.allais@ens-lyon.org
+
+-- A copyright notice.
+-- copyright:
+-- category:
+
+executable Tiling
+    main-is:          MAlonzo/Code/Q02Z45ZTiling.hs
+
+    -- Modules included in this executable, other than Main.
+    other-modules: MAlonzo.Code.Agda.Builtin.Bool,
+                   MAlonzo.Code.Agda.Builtin.Char,
+                   MAlonzo.Code.Agda.Builtin.Coinduction,
+                   MAlonzo.Code.Agda.Builtin.Equality,
+                   MAlonzo.Code.Agda.Builtin.FromNat,
+                   MAlonzo.Code.Agda.Builtin.IO,
+                   MAlonzo.Code.Agda.Builtin.List,
+                   MAlonzo.Code.Agda.Builtin.Maybe,
+                   MAlonzo.Code.Agda.Builtin.Nat,
+                   MAlonzo.Code.Agda.Builtin.Sigma,
+                   MAlonzo.Code.Agda.Builtin.String,
+                   MAlonzo.Code.Agda.Builtin.Unit,
+                   MAlonzo.Code.Agda.Primitive,
+                   MAlonzo.Code.Algebra.Bundles,
+                   MAlonzo.Code.Algebra.Bundles.Raw,
+                   MAlonzo.Code.Algebra.Consequences.Base,
+                   MAlonzo.Code.Algebra.Consequences.Setoid,
+                   MAlonzo.Code.Algebra.Construct.NaturalChoice.Base,
+                   MAlonzo.Code.Algebra.Construct.NaturalChoice.MaxOp,
+                   MAlonzo.Code.Algebra.Construct.NaturalChoice.MinMaxOp,
+                   MAlonzo.Code.Algebra.Construct.NaturalChoice.MinOp,
+                   MAlonzo.Code.Algebra.Definitions.RawMagma,
+                   MAlonzo.Code.Algebra.Lattice.Bundles,
+                   MAlonzo.Code.Algebra.Lattice.Bundles.Raw,
+                   MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinMaxOp,
+                   MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinOp,
+                   MAlonzo.Code.Algebra.Lattice.Structures,
+                   MAlonzo.Code.Algebra.Morphism,
+                   MAlonzo.Code.Algebra.Structures,
+                   MAlonzo.Code.Data.Bool.Base,
+                   MAlonzo.Code.Data.Char.Base,
+                   MAlonzo.Code.Data.Empty,
+                   MAlonzo.Code.Data.Empty.Irrelevant,
+                   MAlonzo.Code.Data.Fin.Base,
+                   MAlonzo.Code.Data.Irrelevant,
+                   MAlonzo.Code.Data.List.Base,
+                   MAlonzo.Code.Data.List.NonEmpty.Base,
+                   MAlonzo.Code.Data.Maybe.Base,
+                   MAlonzo.Code.Data.Nat.Base,
+                   MAlonzo.Code.Data.Nat.Literals,
+                   MAlonzo.Code.Data.Nat.Properties,
+                   MAlonzo.Code.Data.Parity.Base,
+                   MAlonzo.Code.Data.Product.Base,
+                   MAlonzo.Code.Data.Sign.Base,
+                   MAlonzo.Code.Data.String.Base,
+                   MAlonzo.Code.Data.Sum.Base,
+                   MAlonzo.Code.Data.These.Base,
+                   MAlonzo.Code.Data.Vec.Base,
+                   MAlonzo.Code.Function.Base,
+                   MAlonzo.Code.Function.Bundles,
+                   MAlonzo.Code.Function.Consequences,
+                   MAlonzo.Code.Function.Consequences.Propositional,
+                   MAlonzo.Code.Function.Consequences.Setoid,
+                   MAlonzo.Code.Function.Metric.Nat.Bundles,
+                   MAlonzo.Code.Function.Metric.Structures,
+                   MAlonzo.Code.Function.Structures,
+                   MAlonzo.Code.IO.Base,
+                   MAlonzo.Code.IO.Primitive,
+                   MAlonzo.Code.Level,
+                   MAlonzo.Code.Relation.Binary.Bundles,
+                   MAlonzo.Code.Relation.Binary.Consequences,
+                   MAlonzo.Code.Relation.Binary.Construct.Flip.EqAndOrd,
+                   MAlonzo.Code.Relation.Binary.Definitions,
+                   MAlonzo.Code.Relation.Binary.Properties.Setoid,
+                   MAlonzo.Code.Relation.Binary.PropositionalEquality.Algebra,
+                   MAlonzo.Code.Relation.Binary.PropositionalEquality.Core,
+                   MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties,
+                   MAlonzo.Code.Relation.Binary.Reasoning.Base.Double,
+                   MAlonzo.Code.Relation.Binary.Reasoning.Base.Single,
+                   MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple,
+                   MAlonzo.Code.Relation.Binary.Reasoning.Syntax,
+                   MAlonzo.Code.Relation.Binary.Structures,
+                   MAlonzo.Code.Relation.Binary.Structures.Biased,
+                   MAlonzo.Code.Relation.Nullary.Decidable,
+                   MAlonzo.Code.Relation.Nullary.Decidable.Core,
+                   MAlonzo.Code.Relation.Nullary.Negation.Core,
+                   MAlonzo.Code.Relation.Nullary.Reflects,
+                   MAlonzo.RTE
+
+    ghc-options: -main-is MAlonzo.Code.Q02Z45ZTiling
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base >=4.13 && <5
+                    , JuicyPixels >=3.3 && <3.4
+                    , text >=2.0 && <2.3
+    hs-source-dirs:   .
+    default-language: Haskell2010
