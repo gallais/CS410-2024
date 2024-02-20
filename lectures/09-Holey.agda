@@ -185,6 +185,15 @@ reduce-if e = ?
 
 
 
+-- Arguably our language is almost too simple, because if we think
+-- about it, it should be the case that reduce-if optimises away *all*
+-- if expressions (you wouldn't expect this as soon as you have
+-- variables, for example). Let's prove this:
+
+reduce-if-branchless : (e : TExpr Bit) → Σ Bool (λ b → reduce-if e ≡ bit b)
+
+
+
 
 
 

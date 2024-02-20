@@ -1,6 +1,7 @@
 open import Data.Nat
 open import Data.Bool
 open import Data.Maybe
+open import Data.Product
 open import Relation.Binary.PropositionalEquality
 
 ---------------------------------------------------------------------------
@@ -307,6 +308,62 @@ reduce-if-correct (ifE e then et else ef)
 -- We can also run our optimiser, of course
 _ : reduce-if tex3 ≡ num 7
 _ = refl
+
+-- Arguably our language is almost too simple, because if we think
+-- about it, it should be the case that reduce-if optimises away *all*
+-- if expressions (you wouldn't expect this as soon as you have
+-- variables, for example). Let's prove this:
+
+reduce-if-branchless : (e : TExpr Bit) → Σ Bool (λ b → reduce-if e ≡ bit b)
+reduce-if-branchless (bit b) = b , refl
+reduce-if-branchless (ifE eb then et else ef) with reduce-if eb | reduce-if-branchless eb
+... | .(bit false) | false , refl = reduce-if-branchless ef
+... | .(bit true) | true , refl = reduce-if-branchless et
+
+-- That wasn't too bad, but we can still think about better ways to do
+-- it. Can we be *deliberate* about what we are doing?
+
+data BLExpr : Ty -> Set where -- branchless expressions
+  num : ℕ -> BLExpr Num
+  bit : Bool -> BLExpr Bit
+  _+E_ : BLExpr Num -> BLExpr Num -> BLExpr Num
+
+-- Again we can forget about the extra precision we have achieved.
+
+forget-BL : ∀ {T} → BLExpr T → TExpr T
+forget-BL (num n) = num n
+forget-BL (bit b) = bit b
+forget-BL (e +E e') = forget-BL e +E forget-BL e'
+
+-- Now we can make a version of reduce-if deliberately targetting
+-- branchless expressions. As an added bonus, its definition gets
+-- simpler too!
+
+reduce-if-BL : ∀ {T} → TExpr T -> BLExpr T
+reduce-if-BL (num n) = num n
+reduce-if-BL (bit b) = bit b
+reduce-if-BL (e +E e') = reduce-if-BL e +E reduce-if-BL e'
+reduce-if-BL (ifE eb then et else ef) with reduce-if-BL eb
+... | bit false = reduce-if-BL ef
+... | bit true = reduce-if-BL et
+
+-- We recover the original functionality by forgetting in the end.
+
+reduce-if' : ∀ {T} → TExpr T -> TExpr T
+reduce-if' e = forget-BL (reduce-if-BL e)
+
+-- Now branchless expressions are almost trivially branchless.
+
+BL-branchless : (e : BLExpr Bit) → Σ Bool (λ b → e ≡ bit b)
+BL-branchless (bit b) = b , refl
+
+-- Which gives an easy proof that reduce-if' e is too.
+
+reduce-if'-branchless : (e : TExpr Bit) → Σ Bool (λ b → reduce-if' e ≡ bit b)
+reduce-if'-branchless e with BL-branchless (reduce-if-BL e)
+... | (b , q) = (b , cong forget-BL q)
+
+
 
 -- For our next optimisation, we are interested in if a number is a
 -- constant or not. We can expose this using a *View*. First we define
