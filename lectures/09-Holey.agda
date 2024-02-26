@@ -12,11 +12,13 @@ import 08-Lecture
 
 -- | Why does n ≤ 0 → n ≡ 0 work with z≤n?
 
-n≤0⇒n≡0 : ∀ {n} → n ≤ 0 → n ≡ 0
-n≤0⇒n≡0 p = {!!}
+n≤0⇒n≡0 : ∀ {k} → k ≤ 0 → k ≡ 0
+n≤0⇒n≡0 z≤n = refl
 
 -- | What is the purpose of the Irrelevant type?
 -- | Did I miss the lecture introduing the Irrelevant type? What is it?
+
+
 
 -- | In the proof of 12492 ≤ 25125 at the end, what does the underscores mean?
 
@@ -58,6 +60,18 @@ infix 0 ifE_then_else_
 
 -- Examples
 
+ex1 : Expr
+ex1 = num 2 +E num 3
+
+ex1' : Expr
+ex1' = num 5
+
+ex2 : Expr
+ex2 = bit true +E num 7
+
+ex3 : Expr
+ex3 = ifE bit false then ex2 else num 14
+
 ---------------
 -- Evaluation
 ---------------
@@ -72,20 +86,35 @@ data Val : Set where
 -- sense, we return `Maybe` a value.
 
 _+V_ : Val -> Val -> Maybe Val
-_+V_ = ?
+num x +V num y = just (num (x + y))
+_ +V _ = nothing
 
 -- Now we can Maybe produce a value from an expression; we return
 -- `nothing` if things don't make sense.
 
 eval : Expr → Maybe Val
-eval e = ?
+eval (num n) = just (num n)
+eval (bit b) = just (bit b)
+eval (e +E e') = do
+  v <- eval e
+  v' <- eval e'
+  v +V v'
+eval (ifE eb then et else ef) = do
+  (bit b) <- eval eb where
+                       _ -> nothing
+  if b then eval et else eval ef
+{-
+eval (ifE eb then et else ef) with eval eb
+... | just (bit false) = eval ef
+... | just (bit true) = eval et
+... | _ = nothing
+-}
 
+_ : eval ex2 ≡ nothing
+_ = refl
 
-
-
-
-
-
+_ :  eval ex3 ≡ just (num 14)
+_ = refl
 
 
 ---------------------------------------------------------------------------
@@ -109,12 +138,6 @@ data TExpr : Ty -> Set where
   _+E_ : TExpr Num -> TExpr Num -> TExpr Num
   ifE_then_else_ : {T : Ty} -> TExpr Bit -> TExpr T -> TExpr T -> TExpr T
 
-
-
-
-
-
-
 ---------------
 -- Evaluation
 ---------------
@@ -123,17 +146,15 @@ data TExpr : Ty -> Set where
 -- expression.
 
 TVal : Ty -> Set
-TVal τ = ?
+TVal Num = ℕ
+TVal Bit = Bool
 
 teval : {T : Ty} -> TExpr T -> TVal T
-teval t = ?
-
-
-
-
-
-
-
+teval (num n) = n
+teval (bit b) = b
+teval (e +E e') = teval e + teval e'
+teval (ifE eb then et else ef)
+ = if teval eb then teval et else teval ef
 
 
 --------------------------------------------------------------------------
@@ -143,7 +164,10 @@ teval t = ?
 -- It is easy to forget the type of a typed expression.
 
 ∣_∣  : ∀ {t} → TExpr t -> Expr
-∣ e ∣ = ?
+∣ num n ∣ = num n 
+∣ bit b ∣ = bit b
+∣ e +E e' ∣ = ∣ e ∣ +E ∣ e' ∣
+∣ ifE eb then et else ef ∣ = ifE ∣ eb ∣ then ∣ et ∣ else ∣ ef ∣
 
 -- Conversely, we can record when a given untyped expression is
 -- welltyped. (As we have seen, this is not always the case.)
@@ -155,8 +179,24 @@ record Welltyped (e : Expr) : Set where
     t : TExpr τ
     is-same : ∣ t ∣ ≡ e
 
+eqTy? : (X Y : Ty) -> Maybe (X ≡ Y)
+eqTy? Num Num = just refl
+eqTy? Bit Bit = just refl
+eqTy? _ _ = nothing
+
 infer : (e : Expr) -> Maybe (Welltyped e)
-infer e = ?
+infer (num n) = just (okay Num (num n) refl)
+infer (bit b) = just (okay Bit (bit b) refl)
+infer (e +E e') = do
+  okay Num e refl <- infer e where _ -> nothing
+  okay Num e' refl <- infer e' where _ -> nothing
+  just (okay Num (e +E e') refl)
+infer (ifE eb then et else ef) = do
+  okay Bit eb refl <- infer eb where _ -> nothing
+  okay T et refl <- infer et
+  okay F ef refl <- infer ef
+  refl <- eqTy? T F
+  just (okay T (ifE eb then et else ef) refl)
 
 ---------------------------------------------------------------------------
 -- Optimising expressions
@@ -166,21 +206,42 @@ infer e = ?
 -- false`. Using typed expressions, we can already record in the type
 -- of this function that this optimisation is type-preserving.
 
-reduce-if : ∀ {t} → TExpr t -> TExpr t
-reduce-if e = ?
-
--- Now let's prove that our optimisation did not change the meaning of expressions.
-
-
-
-
-
+reduce-if : ∀ {T} → TExpr T -> TExpr T
+reduce-if (num n) = num n
+reduce-if (bit b) = bit b
+reduce-if (e +E e') = reduce-if e +E reduce-if e'
+reduce-if (ifE eb then et else ef) with reduce-if eb
+... | bit false = reduce-if ef
+... | bit true = reduce-if et
+... | eb' = ifE eb' then reduce-if et else reduce-if ef
 
 
 
 -- We can also run our optimiser, of course
--- _ : reduce-if tex3 ≡ num 7
--- _ = refl
+tex3 : TExpr Num
+tex3 = ifE (ifE bit true then bit false else bit true) then num 42 else num 7
+
+_ : reduce-if tex3 ≡ num 7
+_ = refl
+
+
+-- Now let's prove that our optimisation did not change the meaning of expressions.
+
+reduce-if-preserves-meaning : forall {T}(e : TExpr T) -> teval (reduce-if e) ≡ teval e
+reduce-if-preserves-meaning (num n) = refl
+reduce-if-preserves-meaning (bit b) = refl
+reduce-if-preserves-meaning (e +E e') = cong₂ _+_ (reduce-if-preserves-meaning e) (reduce-if-preserves-meaning e')
+reduce-if-preserves-meaning (ifE eb then et else ef) with reduce-if eb | reduce-if-preserves-meaning eb
+reduce-if-preserves-meaning (ifE eb then et else ef) | bit false | qb with teval eb
+reduce-if-preserves-meaning (ifE eb then et else ef) | bit false | refl | .false = reduce-if-preserves-meaning ef
+reduce-if-preserves-meaning (ifE eb then et else ef) | bit true | qb rewrite sym qb = reduce-if-preserves-meaning et
+reduce-if-preserves-meaning (ifE eb then et else ef) | ifE eb' then eb'' else eb''' | qb
+  rewrite qb | reduce-if-preserves-meaning et | reduce-if-preserves-meaning ef = refl
+
+
+
+
+
 
 
 
@@ -189,9 +250,6 @@ reduce-if e = ?
 -- about it, it should be the case that reduce-if optimises away *all*
 -- if expressions (you wouldn't expect this as soon as you have
 -- variables, for example). Let's prove this:
-
-reduce-if-branchless : (e : TExpr Bit) → Σ Bool (λ b → reduce-if e ≡ bit b)
-
 
 
 
@@ -205,8 +263,7 @@ reduce-if-branchless : (e : TExpr Bit) → Σ Bool (λ b → reduce-if e ≡ bit
 
 
 -- Constant folding: replace num n + num k with num (n + k)
-cfold : ∀ {T} → TExpr T → TExpr T
-cfold = ?
+-- cfold : ∀ {T} → TExpr T → TExpr T
 
 {-
 tex4 : TExpr Num
@@ -220,5 +277,4 @@ _ = refl {x = TExpr.num 25}
 -}
 
 
-cfold-correct : ∀ {T} → (e : TExpr T) → teval (cfold e) ≡ teval e
-cfold-correct = ?
+-- cfold-correct : ∀ {T} → (e : TExpr T) → teval (cfold e) ≡ teval e
