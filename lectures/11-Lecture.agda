@@ -1,4 +1,4 @@
-
+open import Data.Nat using (ℕ)
 open import Data.Maybe
 
 open import Relation.Binary.PropositionalEquality
@@ -20,25 +20,8 @@ open Category
 
 -- See 11-Lecture.hs
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---------------------------------------------------------------------------
--- Functors in Haskell
+-- Functors in Agda/Mathematics
 ---------------------------------------------------------------------------
 
 -- A functor is a "morphism of categories": we translate objects to
@@ -135,6 +118,17 @@ module _ where
 
   -- Exercise: is there a greatest order? ("chaotic")
 
+  ---------------------------------------------------------------------------
+  -- One minute paper interlude: example of using smallestOrder on something?
+  ---------------------------------------------------------------------------
+
+  ℕ-order : Preorder
+  ℕ-order = act smallestOrder ℕ
+
+  -- More usefully: smallestOrder can be used to "promote" arbitary functions into certain monotone maps
+  outOfSmallest : {X : Set}{Y : Preorder} → (X → Carrier Y) → MonotoneMap (act smallestOrder X) Y
+  fun (outOfSmallest f) = f
+  monotone (outOfSmallest {Y = Y} f) x .x refl = reflexive Y
 
 -------------------------------
 -- How to prove Functors equal
@@ -210,6 +204,42 @@ open NaturalTransformation
 -- translate and then fmap.
 
 --------------------------------------------------------------------------
+-- flip is a natural transformation
+---------------------------------------------------------------------------
+
+flip : {X : Set} → Tree X → Tree X
+flip leaf = leaf
+flip (node l a r) = node (flip r) a (flip l)
+
+flip-natural : ∀ {X} {Y} {f : X → Y} (t : Tree X) →
+               comp SET (fmap TREE f) flip t ≡ comp SET flip (fmap TREE f) t
+flip-natural leaf = refl
+flip-natural (node l a r) = cong₂ (λ x y → node x _ y) (flip-natural r) (flip-natural l)
+
+
+flipT : NaturalTransformation TREE TREE
+transform flipT X = flip
+natural flipT X Y f = ext flip-natural
+
+intTree : Tree ℕ
+intTree = node
+            (node leaf 4 leaf)
+            5
+            (node
+               (node leaf 7 leaf)
+               42
+               leaf)
+
+_ : flip intTree ≡ node
+                     (node
+                       leaf
+                       42
+                       (node leaf 7 leaf))
+                     5
+                     (node leaf 4 leaf)
+_ = refl
+
+--------------------------------------------------------------------------
 -- root is a natural transformation
 ---------------------------------------------------------------------------
 
@@ -229,3 +259,6 @@ root : NaturalTransformation TREE MAYBE
 transform root X leaf = nothing
 transform root X (node l x r) = just x
 natural root X Y f = ext λ { leaf → refl ; (node l x r) → refl }
+
+_ : transform root ℕ intTree ≡ just 5
+_ = refl
