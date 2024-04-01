@@ -316,7 +316,7 @@ postulate
 
 {-# FOREIGN GHC import Data.Word #-}
 {-# COMPILE GHC Word8 = type Word8 #-}
-{-# COMPILE GHC fromℕ = fromInteger #-}
+{-# COMPILE GHC fromℕ' = fromInteger #-}
 {-# COMPILE GHC toℕ = toInteger #-}
 
 instance
